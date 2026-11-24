@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ANSI/ASME B73.1 Process Pump Engineering Toolkit — 223 OEM Part Lookup &amp; NPSHa Calculator</title>
+  <meta name="description" content="Free open-source ANSI/ASME B73.1 engineering toolkit: 223 Goulds 3196 &amp; Durco Mark 3 aftermarket OEM part cross-reference, high-altitude NPSHa cavitation calculator, 50Hz/60Hz affinity laws converter, and RFQ nameplate builder by YSM Pumps." />
+  <style>
+    :root {
+      --navy: #0b2239;
+      --navy-2: #123456;
+      --accent: #0ea5e9;
+      --orange: #ea580c;
+      --orange-hover: #c2410c;
+      --green: #15803d;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --muted: #475569;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    header {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+      color: #fff;
+      padding: 28px 20px 24px;
+      border-bottom: 4px solid var(--orange);
+    }
+    .wrap { max-width: 1180px; margin: 0 auto; }
+    .top-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+    .badge {
+      display: inline-block;
+      background: rgba(14, 165, 233, 0.2);
+      border: 1px solid rgba(14, 165, 233, 0.55);
+      color: #bae6fd;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.4px;
+    }
+    h1 { margin: 10px 0 6px; font-size: clamp(22px, 3vw, 30px); line-height: 1.2; }
+    .subtitle { margin: 0; color: #cbd5e1; font-size: 14px; max-width: 820px; }
+    .header-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 14px; border-radius: 6px; font-size: 13px; font-weight: 600;
+      text-decoration: none; cursor: pointer; border: none; transition: 0.15s;
+    }
+    .btn-primary { background: var(--orange); color: #fff; }
+    .btn-primary:hover { background: var(--orange-hover); }
+    .btn-outline { background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+    .btn-outline:hover { background: rgba(255,255,255,0.18); }
+    .btn-soft { background: #e0f2fe; color: #0369a1; }
+    .btn-soft:hover { background: #bae6fd; }
+    .btn-green { background: var(--green); color: #fff; }
+    .btn-green:hover { background: #166534; }
+
+    main { padding: 22px 20px 48px; }
+    .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+    .tab-btn {
+      padding: 10px 16px; border-radius: 8px; border: 1px solid var(--border);
+      background: #fff; color: var(--navy); font-weight: 600; font-size: 14px; cursor: pointer;
+    }
+    .tab-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .panel { display: none; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; box-shadow: 0 2px 6px rgba(15,23,42,0.04); }
+    .panel.active { display: block; }
+
+    .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+    label { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+    input, select, textarea {
+      width: 100%; padding: 9px 11px; border: 1px solid var(--border); border-radius: 6px;
+      font-size: 14px; font-family: inherit; background: #fff;
+    }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+
+    .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; max-height: 540px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { position: sticky; top: 0; background: #f8fafc; text-align: left; padding: 10px; border-bottom: 2px solid var(--border); color: var(--navy); font-weight: 700; white-space: nowrap; }
+    td { padding: 9px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    tr:hover td { background: #f8fafc; }
+    .code-pill { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: 600; font-size: 12px; }
+    .code-ysm { background: #dbeafe; color: #1e40af; }
+
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+    .kpi { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+    .kpi .val { font-size: 24px; font-weight: 800; color: var(--navy); }
+    .kpi .lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    .callout {
+      background: #eff6ff; border-left: 4px solid var(--accent); padding: 12px 16px;
+      border-radius: 6px; font-size: 13px; margin-top: 14px;
+    }
+    .callout.warn { background: #fff7ed; border-left-color: var(--orange); }
+    .rfq-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 14px; }
+    .chip { background: #dbeafe; color: #1e3a8a; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; display: inline-flex; align-items: center; gap: 6px; }
+    .chip button { border: none; background: none; color: #1e3a8a; font-weight: 700; cursor: pointer; padding: 0; }
+
+    footer {
+      border-top: 1px solid var(--border); padding: 20px; background: #fff; color: var(--muted); font-size: 12px;
+    }
+    footer a { color: #0369a1; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="top-bar">
+        <span class="badge">OPEN ENGINEERING DATASET · ANSI / ASME B73.1</span>
+        <span style="font-size:12px;color:#cbd5e1;">Maintained by <strong>YSM Pumps</strong> (Independent Non-OEM Foundry since 2010)</span>
+      </div>
+      <h1>ANSI/ASME B73.1 Process Pump Engineering Toolkit</h1>
+      <p class="subtitle">
+        Cross-reference <strong>223 OEM aftermarket part numbers</strong> (Goulds 3196 / Flowserve Durco Mark 3 / Griswold 811 / Peerless 8196 / Summit 2196),
+        compute high-altitude <strong>NPSHa</strong>, convert <strong>50Hz / 60Hz affinity laws</strong>, and generate standardized plant RFQs.
+      </p>
+      <div class="header-links">
+        <a class="btn btn-primary" href="https://ysmpumps.com/urgent-ansi-pump-parts-rfq-checklist/?utm_source=github&utm_medium=pages_toolkit&utm_campaign=header_cta" target="_blank" rel="noopener">48h Stock &amp; RFQ Checklist (EN)</a>
+        <a class="btn btn-outline" href="https://ysmpumps.com/goulds-3196-pump-parts/?utm_source=github&utm_medium=pages_toolkit" target="_blank" rel="noopener">Goulds 3196 Parts</a>
+        <a class="btn btn-outline" href="https://ysmpumps.com/durco-mark-3-pump-parts/?utm_source=github&utm_medium=pages_toolkit" target="_blank" rel="noopener">Durco Mark 3 Parts</a>
+        <a class="btn btn-outline" href="https://ysmbombas.com/repuestos-ansi/?utm_source=github&utm_medium=pages_toolkit" target="_blank" rel="noopener">Versión Español (ysmbombas.com)</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="tabs" role="tablist">
+      <button class="tab-btn active" data-tab="lookup">1. 223 OEM Part Lookup</button>
+      <button class="tab-btn" data-tab="npsha">2. NPSHa &amp; Altitude Calculator</button>
+      <button class="tab-btn" data-tab="affinity">3. 50Hz / 60Hz Affinity Laws</button>
+      <button class="tab-btn" data-tab="rfq">4. Instant RFQ Builder (<span id="rfq-count">0</span>)</button>
+    </div>
+
+    <!-- TAB 1: OEM LOOKUP -->
+    <section id="tab-lookup" class="panel active">
+      <div class="controls">
+        <div>
+          <label for="q">Search OEM Code, YSM Code, or Size</label>
+          <input id="q" type="text" placeholder="e.g. 104554, DY46070A, 2x3-10, impeller, MTX..." />
+        </div>
+        <div>
+          <label for="f-series">Pump Series / Pattern</label>
+          <select id="f-series">
+            <option value="">All Series (223 codes)</option>
+            <option value="G196">G196 — Goulds 3196 / 811 / 8196 / 2196</option>
+            <option value="D Mark III">D Mark III — Durco Mark 3 / Clark 3</option>
+          </select>
+        </div>
+        <div>
+          <label for="f-comp">Component Type</label>
+          <select id="f-comp">
+            <option value="">All Components</option>
+            <option value="casing">Casing / Volute (Item 100)</option>
+            <option value="impeller">Impeller (Item 101)</option>
+            <option value="cover">Stuffing Box / Rear Cover / Seal Chamber</option>
+            <option value="shaft">Shaft &amp; Shaft Sleeve</option>
+            <option value="frame">Frame / Bearing Housing / Adapter</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:13px;color:var(--muted);">
+        <span id="result-meta">Loading 223 OEM records...</span>
+        <a href="ansi_b73_1_223_oem_cross_reference_en.csv" download style="color:#0369a1;font-weight:600;">Download Full CSV (UTF-8)</a>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Series</th>
+              <th>Frame / Group</th>
+              <th>ANSI Size</th>
+              <th>Component</th>
+              <th>OEM Ref #</th>
+              <th>YSM Code</th>
+              <th>Cast Alloys</th>
+              <th>Specs &amp; Quote</th>
+            </tr>
+          </thead>
+          <tbody id="parts-tbody"></tbody>
+        </table>
+      </div>
+      <div class="callout">
+        <strong>Stock &amp; Lead Time Reference (YSM Pumps Foundry, Zibo):</strong>
+        Common CF8M (316SS) &amp; CD4MCu wet-end stock dispatches in <strong>48 hours</strong>; custom castings (Alloy 20, Hastelloy B/C, Monel, Titanium Gr.2, Zirconium) in <strong>1–4 weeks</strong> with EN 10204 3.1 PMI, CMM dimensional inspection, dynamic balancing, and SGS/BV/TÜV witness testing.
+        <a href="https://ysmpumps.com/resources/certifications-quality/?utm_source=github&utm_medium=pages_toolkit" target="_blank" rel="noopener">View QA Protocol →</a>
+      </div>
+    </section>
+
+    <!-- TAB 2: NPSHa -->
+    <section id="tab-npsha" class="panel">
+      <div class="controls">
+        <div>
+          <label for="n-elev">Site Elevation (meters ASL)</label>
+          <input id="n-elev" type="number" value="0" min="0" max="5000" step="100" />
+        </div>
+        <div>
+          <label for="n-temp">Liquid Temperature (°C, water basis)</label>
+          <input id="n-temp" type="number" value="25" min="0" max="99" step="1" />
+        </div>
+        <div>
+          <label for="n-sg">Specific Gravity (SG)</label>
+          <input id="n-sg" type="number" value="1.00" min="0.5" max="2.5" step="0.05" />
+        </div>
+        <div>
+          <label for="n-stat">Static Suction Head (+flooded / -lift, m)</label>
+          <input id="n-stat" type="number" value="2.0" step="0.5" />
+        </div>
+        <div>
+          <label for="n-fric">Suction Friction Loss (m)</label>
+          <input id="n-fric" type="number" value="0.6" min="0" step="0.1" />
+        </div>
+        <div>
+          <label for="n-gauge">Suction Tank Gauge Pressure (bar g)</label>
+          <input id="n-gauge" type="number" value="0" step="0.1" />
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi"><div class="val" id="o-npsha-m">--</div><div class="lbl">NPSHa (meters)</div></div>
+        <div class="kpi"><div class="val" id="o-npsha-ft">--</div><div class="lbl">NPSHa (feet)</div></div>
+        <div class="kpi"><div class="val" id="o-patm">--</div><div class="lbl">Local Atm. Pressure (kPa)</div></div>
+        <div class="kpi"><div class="val" id="o-max-npshr">--</div><div class="lbl">Safe Max NPSHr (0.6m margin)</div></div>
+      </div>
+      <div class="callout warn" id="npsha-note">
+        Always maintain an NPSHa/NPSHr margin of at least 0.6 m (2 ft) — or 1.0–1.5 m for high-energy chemical or high-altitude Andean mining services (3,000–4,500 m ASL).
+        <a href="https://ysmpumps.com/resources/npsh-and-cavitation/?utm_source=github&utm_medium=pages_toolkit" target="_blank" rel="noopener">Full NPSH &amp; Cavitation Guide (EN)</a> ·
+        <a href="https://ysmbombas.com/guia-tecnica/calculo-npsha-altitud-geografica-bombas-mineria-andina/?utm_source=github&utm_medium=pages_toolkit" target="_blank" rel="noopener">Guía Altitud Andina (ES)</a>
+      </div>
+    </section>
+
+    <!-- TAB 3: AFFINITY LAWS -->
+    <section id="tab-affinity" class="panel">
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+        <button class="btn btn-soft" type="button" onclick="setSpeeds(1750, 1450)">Preset: 60Hz (1750) → 50Hz (1450)</button>
+        <button class="btn btn-soft" type="button" onclick="setSpeeds(3500, 2900)">Preset: 60Hz (3500) → 50Hz (2900)</button>
+        <button class="btn btn-soft" type="button" onclick="setSpeeds(1450, 1750)">Preset: 50Hz (1450) → 60Hz (1750)</button>
+      </div>
+      <div class="controls">
+        <div><label for="a-n1">Original Speed N1 (RPM)</label><input id="a-n1" type="number" value="1750" /></div>
+        <div><label for="a-n2">New Speed N2 (RPM)</label><input id="a-n2" type="number" value="1450" /></div>
+        <div><label for="a-q1">Original Flow Q1 (m³/h or GPM)</label><input id="a-q1" type="number" value="100" /></div>
+        <div><label for="a-h1">Original Head H1 (m or ft)</label><input id="a-h1" type="number" value="40" /></div>
+        <div><label for="a-p1">Original Shaft Power P1 (kW or HP)</label><input id="a-p1" type="number" value="15" /></div>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="val" id="o-q2">--</div><div class="lbl">New Flow Q2 (∝ N)</div></div>
+        <div class="kpi"><div class="val" id="o-h2">--</div><div class="lbl">New Head H2 (∝ N²)</div></div>
+        <div class="kpi"><div class="val" id="o-p2">--</div><div class="lbl">New Power P2 (∝ N³)</div></div>
+        <div class="kpi"><div class="val" id="o-ratio">--</div><div class="lbl">Speed Ratio (N2 / N1)</div></div>
+      </div>
+      <div class="callout">
+        Need help matching a 50Hz South American or European motor to an ANSI B73.1 60Hz curve (or trimming an impeller)?
+        <a href="https://ysmpumps.com/resources/pump-affinity-laws/?utm_source=github&utm_medium=pages_toolkit" target="_blank" rel="noopener">Read Pump Affinity Laws Guide →</a>
+      </div>
+    </section>
+
+    <!-- TAB 4: INSTANT RFQ BUILDER -->
+    <section id="tab-rfq" class="panel">
+      <p style="margin-top:0;font-size:14px;color:var(--muted);">
+        Select parts from Tab 1 or enter your pump nameplate details below to generate a factory-ready RFQ message.
+        Direct response from YSM Pumps engineering in <strong>≤ 48 hours</strong> (48h stock dispatch for standard CF8M/CD4MCu spares).
+      </p>
+      <div class="rfq-chips" id="rfq-chips"></div>
+      <div class="controls">
+        <div>
+          <label for="r-model">Pump Model / Size (from Nameplate)</label>
+          <input id="r-model" type="text" placeholder="e.g. Goulds 3196 MTX 2x3-10 or Durco Mark 3 2K3x2-8" />
+        </div>
+        <div>
+          <label for="r-alloy">Required Wet-End Alloy</label>
+          <select id="r-alloy">
+            <option>CF8M (316SS)</option>
+            <option>CD4MCu (Duplex)</option>
+            <option>CN7M (Alloy 20)</option>
+            <option>Hastelloy C-276 / B</option>
+            <option>Titanium Grade 2 / 3</option>
+            <option>ASTM A216 WCB (Carbon Steel)</option>
+            <option>Monel / Nickel / Zirconium</option>
+          </select>
+        </div>
+        <div>
+          <label for="r-qty">Quantity &amp; Urgency</label>
+          <input id="r-qty" type="text" value="2 pcs — urgent breakdown / stock check" />
+        </div>
+        <div>
+          <label for="r-dest">Destination Country &amp; Power Freq</label>
+          <input id="r-dest" type="text" placeholder="e.g. USA (60Hz) / Chile (50Hz) / Germany (50Hz)" />
+        </div>
+      </div>
+      <label for="r-preview">Generated RFQ Summary</label>
+      <textarea id="r-preview" rows="7" readonly></textarea>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;">
+        <a id="btn-wa" class="btn btn-green" target="_blank" rel="noopener">Send via WhatsApp (+86 186 1541 9318)</a>
+        <a id="btn-mail" class="btn btn-primary">Send via Email (gavin42541@gmail.com)</a>
+        <button class="btn btn-soft" type="button" id="btn-copy">Copy RFQ Text</button>
+        <a class="btn btn-soft" href="https://ysmpumps.com/contact-us-2/?utm_source=github&utm_medium=pages_toolkit&utm_campaign=rfq_builder" target="_blank" rel="noopener">Open Official Quote Form →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <strong>Independent Non-OEM Notice:</strong> YSM Pumps (Jinan Yingsiman Machinery Co., Ltd.) is an independent aftermarket manufacturer of ANSI/ASME B73.1, ISO 5199, and API 610 process pumps and dimensionally interchangeable spare parts. Third-party trademarks (Goulds®, 3196®, Durco®, Flowserve®, Mark 3®, Griswold®, Peerless®, Summit®, Aurora®, PumpWorks®) are cited strictly for dimensional interchangeability reference.<br />
+      Links: <a href="https://ysmpumps.com/?utm_source=github&utm_medium=pages_toolkit">ysmpumps.com (English)</a> ·
+      <a href="https://ysmbombas.com/?utm_source=github&utm_medium=pages_toolkit">ysmbombas.com (Español)</a> ·
+      <a href="https://ysmpumps.com/resources/centrifugal-pump-parts/?utm_source=github&utm_medium=pages_toolkit">Centrifugal Pump Parts Diagram</a> ·
+      <a href="https://ysmpumps.com/pump-nameplate-drawing-replacement-identification/?utm_source=github&utm_medium=pages_toolkit">Nameplate Identification Guide</a>
+    </div>
+  </footer>
+
+  <script>
+    let allParts = [];
+    const selectedParts = [];
+
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+
+    function renderParts() {
+      const q = document.getElementById('q').value.trim().toLowerCase();
+      const series = document.getElementById('f-series').value;
+      const comp = document.getElementById('f-comp').value;
+      const filtered = allParts.filter(r => {
+        if (series && r.ysm_series !== series) return false;
+        if (comp) {
+          const c = r.component_en.toLowerCase();
+          if (comp === 'cover' && !(c.includes('cover') || c.includes('seal chamber') || c.includes('stuffing'))) return false;
+          else if (comp === 'frame' && !(c.includes('frame') || c.includes('bearing') || c.includes('adapter'))) return false;
+          else if (comp !== 'cover' && comp !== 'frame' && !c.includes(comp)) return false;
+        }
+        if (!q) return true;
+        return [r.ysm_series, r.frame_group, r.ansi_size, r.component_en, r.oem_reference_code, r.ysm_code, r.available_alloys]
+          .join(' ').toLowerCase().includes(q);
+      });
+
+      document.getElementById('result-meta').textContent = `Showing ${filtered.length} of ${allParts.length} OEM cross-reference codes`;
+      const tbody = document.getElementById('parts-tbody');
+      tbody.innerHTML = filtered.slice(0, 120).map(r => {
+        const enHref = r.ysmpumps_en_url + (r.ysmpumps_en_url.includes('?') ? '&' : '?') + 'utm_source=github&utm_medium=pages_toolkit';
+        const escCode = r.oem_reference_code.replace(/'/g, "\\'");
+        const escYsm = r.ysm_code.replace(/'/g, "\\'");
+        const escSize = r.ansi_size.replace(/'/g, "\\'");
+        const escComp = r.component_en.replace(/'/g, "\\'");
+        return `<tr>
+          <td><strong>${r.ysm_series}</strong></td>
+          <td>${r.frame_group}</td>
+          <td><strong>${r.ansi_size}</strong></td>
+          <td>${r.component_en}</td>
+          <td><span class="code-pill">${r.oem_reference_code}</span></td>
+          <td><span class="code-pill code-ysm">${r.ysm_code}</span></td>
+          <td style="font-size:12px;color:#475569;max-width:200px;">${r.available_alloys}</td>
+          <td style="white-space:nowrap;">
+            <a href="${enHref}" target="_blank" rel="noopener" style="color:#0369a1;font-weight:600;margin-right:8px;">Specs</a>
+            <button type="button" class="btn btn-soft" style="padding:3px 8px;font-size:12px;" onclick="addRfq('${escCode}','${escYsm}','${escSize}','${escComp}')">+ RFQ</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    window.addRfq = function(oem, ysm, size, comp) {
+      const label = `OEM ${oem} / YSM ${ysm} (${size} ${comp})`;
+      if (!selectedParts.includes(label)) selectedParts.push(label);
+      updateRfq();
+    };
+    window.removeRfq = function(idx) {
+      selectedParts.splice(idx, 1);
+      updateRfq();
+    };
+
+    function updateRfq() {
+      document.getElementById('rfq-count').textContent = selectedParts.length;
+      document.getElementById('rfq-chips').innerHTML = selectedParts.map((p, i) =>
+        `<span class="chip">${p} <button type="button" onclick="removeRfq(${i})">×</button></span>`
+      ).join('');
+
+      const model = document.getElementById('r-model').value || '(Specify pump model/nameplate)';
+      const alloy = document.getElementById('r-alloy').value;
+      const qty = document.getElementById('r-qty').value;
+      const dest = document.getElementById('r-dest').value || '(Specify destination & 50/60Hz)';
+      const partsList = selectedParts.length ? selectedParts.map(p => '- ' + p).join('\n') : '- (Attach nameplate photo or OEM part number)';
+
+      const text = `Hello YSM Pumps Engineering Team,\n\nPlease quote availability, price, and dispatch lead time for the following ANSI B73.1 replacement pump / aftermarket parts:\n\nPump Model / Size: ${model}\nRequired Alloy: ${alloy}\nQuantity / Urgency: ${qty}\nDestination / Frequency: ${dest}\nSelected Parts:\n${partsList}\n\n(Generated via ANSI B73.1 Open Engineering Toolkit)`;
+      document.getElementById('r-preview').value = text;
+      document.getElementById('btn-wa').href = 'https://wa.me/8618615419318?text=' + encodeURIComponent(text);
+      document.getElementById('btn-mail').href = 'mailto:gavin42541@gmail.com?cc=miya_zhang@vip.163.com&subject=' + encodeURIComponent('RFQ: ANSI B73.1 Replacement Pump / Parts — ' + model) + '&body=' + encodeURIComponent(text);
+    }
+
+    function updateNpsha() {
+      const elev = parseFloat(document.getElementById('n-elev').value) || 0;
+      const temp = Math.max(0, Math.min(99, parseFloat(document.getElementById('n-temp').value) || 20));
+      const sg = Math.max(0.5, parseFloat(document.getElementById('n-sg').value) || 1);
+      const stat = parseFloat(document.getElementById('n-stat').value) || 0;
+      const fric = Math.max(0, parseFloat(document.getElementById('n-fric').value) || 0);
+      const gauge = parseFloat(document.getElementById('n-gauge').value) || 0;
+
+      const patm = 101.325 * Math.pow(1 - 2.25577e-5 * elev, 5.25588);
+      const pvap = Math.pow(10, 8.07131 - 1730.63 / (233.426 + temp)) * 0.133322;
+      const npshaM = ((patm + gauge * 100 - pvap) * 1000) / (sg * 1000 * 9.80665) + stat - fric;
+      const npshaFt = npshaM * 3.28084;
+
+      document.getElementById('o-npsha-m').textContent = npshaM.toFixed(2) + ' m';
+      document.getElementById('o-npsha-ft').textContent = npshaFt.toFixed(2) + ' ft';
+      document.getElementById('o-patm').textContent = patm.toFixed(1) + ' kPa';
+      document.getElementById('o-max-npshr').textContent = Math.max(0, npshaM - 0.6).toFixed(2) + ' m';
+    }
+
+    window.setSpeeds = function(n1, n2) {
+      document.getElementById('a-n1').value = n1;
+      document.getElementById('a-n2').value = n2;
+      updateAffinity();
+    };
+
+    function updateAffinity() {
+      const n1 = Math.max(1, parseFloat(document.getElementById('a-n1').value) || 1750);
+      const n2 = Math.max(1, parseFloat(document.getElementById('a-n2').value) || 1450);
+      const q1 = parseFloat(document.getElementById('a-q1').value) || 0;
+      const h1 = parseFloat(document.getElementById('a-h1').value) || 0;
+      const p1 = parseFloat(document.getElementById('a-p1').value) || 0;
+      const r = n2 / n1;
+      document.getElementById('o-q2').textContent = (q1 * r).toFixed(2);
+      document.getElementById('o-h2').textContent = (h1 * r * r).toFixed(2);
+      document.getElementById('o-p2').textContent = (p1 * r * r * r).toFixed(2);
+      document.getElementById('o-ratio').textContent = r.toFixed(4);
+    }
+
+    ['q', 'f-series', 'f-comp'].forEach(id => document.getElementById(id).addEventListener('input', renderParts));
+    ['n-elev', 'n-temp', 'n-sg', 'n-stat', 'n-fric', 'n-gauge'].forEach(id => document.getElementById(id).addEventListener('input', updateNpsha));
+    ['a-n1', 'a-n2', 'a-q1', 'a-h1', 'a-p1'].forEach(id => document.getElementById(id).addEventListener('input', updateAffinity));
+    ['r-model', 'r-alloy', 'r-qty', 'r-dest'].forEach(id => document.getElementById(id).addEventListener('input', updateRfq));
+    document.getElementById('btn-copy').addEventListener('click', () => {
+      navigator.clipboard.writeText(document.getElementById('r-preview').value);
+      document.getElementById('btn-copy').textContent = 'Copied!';
+      setTimeout(() => (document.getElementById('btn-copy').textContent = 'Copy RFQ Text'), 1800);
+    });
+
+    fetch('./ansi_b73_1_223_oem_cross_reference_en.json')
+      .then(r => r.json())
+      .then(data => { allParts = data; renderParts(); })
+      .catch(() => { document.getElementById('result-meta').textContent = 'Open via GitHub Pages or local HTTP server to load JSON dataset.'; });
+
+    updateNpsha();
+    updateAffinity();
+    updateRfq();
+  </script>
+</body>
+</html>
